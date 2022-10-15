@@ -1,0 +1,76 @@
+
+
+// === DVT settings for .dvt/default.build
+
++libext+.v+.sv+.sva+.vs
++dvt_ext_map+systemverilog+.v+.sv+.sva+.vs
++systemverilogext+.v+.sv+.sva+.vs
+// Design defines
++define+NO_T28_LIB
++define+RTL
+// FV defines
++define+FPV_RESTRICT+FPV_LIVENESS
+// Add Intel checkers from SVA_LIB
+// +define+SVA_LIB_SVA2005
++define+SVA_LIB_SVA2009
+
+-y ../src
++incdir+../src
+
+// SVA_LIB and intel checkers
+-y $SVA_ROOT 
++incdir+$SVA_ROOT 
+$SVA_ROOT/intel_checkers_pkg.vs
+$SVA_ROOT/intel_checkers.vs
+
+// OVL
+-y $OVL_CHECKERS
++incdir+$OVL_CHECKERS
+
+// FV configuration TCL files
+// NOT FOR vlist : ../cfg/fpv_template.txt 
+// NOT FOR vlist : ../cfg/fpv_pre_setup.tcl 
+// NOT FOR vlist : ../cfg/fpv_extra_setup.tcl 
+
+// FV files
+// ============ Add FV SVA ===============
+// // SV : Keep Packages always first
+// ../src/fv_training_arbiter_pkg.sva
+../src/fv_training_arbiter_top.sva
+// ../src/fv_training_arbiter_utils.sva
+// Design - use vlist
+// -f ../cfg/training_arbiter.vlist
+
+// // SV : Keep Packages always first
+// local copy : ../design/training_arbiter_pkg.sv
+// local copy : ../design/training_arbiter.v
+// local copy : +incdir+../design
+// local copy : -y ../design
+//
+// For discrete (Ridges) only : use $SRC_LNK (verify its not 'latest')
+// $SRC_LNK/cio_defines.def
+// top module
+../design/training_arbiter.v
+-y ../design
++incdir+../design
+//${SRC_LNK}/training_arbiter.v
+//+incdir+${SRC_LNK}
+//-y ${SRC_LNK}
+
+// For Integration (*Falls) only : (requires env yfl wa with WORKROOT defined)
+// requires $WORKROOT/source/trlink/units/${PROJECT}_top/src/cio_defines.def
+// +incdir+$WORKROOT/source/trlink/units/${PROJECT}_top/src
+// +incdir+${WORKROOT}/source/rtl/includes
+//
+// Integration (*Falls) : If gen_lib is required 
+// -y ${WORKROOT}/source/rtl/units/generic/src/gen_lib
+// +incdir+${WORKROOT}/source/rtl/units/generic/src/gen_lib
+
+// Integration (*Falls) : If CTECH is required 
+// e.g. for  : /nfs/iil/proj/ccd/wa/gvardi/YFL/subIP/design_libs/CTECH/v15ww38d/source/v/ctech_lib_doublesync_rst.sv
+// -v ${WORKROOT}/source/rtl/units/tbt_gen/tbt_ctech_map.sv
+// -y ${WORKROOT}/subIP/design_libs/CTECH/v15ww38d/source/v
+
+
+
+

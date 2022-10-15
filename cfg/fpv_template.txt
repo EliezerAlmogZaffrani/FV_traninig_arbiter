@@ -1,0 +1,78 @@
+## Gilboa cannot use set variables :
+# set top_module training_arbiter
+# 'top' as Jasper command
+top training_arbiter
+
+### ================================================================
+#### Pre/Post optional scripts exampples
+# commands to run before analyze (optional)
+# run_pre_setup {source myscript.tcl} {puts "comment"}
+# commands to run after clock/reset setting (optional)
+# run_extra_setup {source myscript.tcl} {puts "comment"}
+# commands to run after prove section
+# run_post_proof {source myscript.tcl} {puts "comment"}
+### ================================================================
+
+run_pre_setup { source ../cfg/fpv_pre_setup.tcl }
+
+#
+### Gilboa why doesnt read $top ???
+vlist ../cfg/fv_training_arbiter.vlist
+# vlist ../cfg/fv_training_arbiter.vlist
+# Gilboa : use lists !  add SVA  vlist ../src/fv_elastic_buffer_top.sva
+
+# clocks :
+clocks { clk }
+resets { !reset_n}
+### FV internal clocks - require full path to top module ? 
+# clocks { FV_clk  -both_edges }
+# resets { !FV_rst_n }
+# clocks fv_training_arbiter_top.FV_clk  -both_edges 
+# resets { !fv_training_arbiter_top.FV_rst_n }
+analyze_params  -sv09 
+
+
+### WARNING : FOR MULTIPLE CLLOCKS PERMUTATIONS - MUST REMOVE NEXT elab_params LINE !!! 
+### SETS DUMMY DEFAULTS ! actual values for TCL clocks are set at fpv_extra_setup.tcl , clock section
+### BUT the SVA design was still compiled with these parameters ...
+# elab_params -parameter  fv_gen_async_fifo_top.FV_WR_CLK_CCS 4 -parameter fv_gen_async_fifo_top.FV_WR_CLK_PHS 1 -parameter ${fv_top_module}.FV_RD_CLK_CCS 2 -parameter ${fv_top_module}.FV_RD_CLK_PHS 1
+
+# Next line replaced with permutations (see below)
+# elab_params -parameter GATE 1 -parameter DELAY_FF 0 -parameter FF_STAGES 8 -parameter DELAY_STROBE 0 -parameter SYNC 1 -parameter SCAN 0 -parameter DFT_SCAN 0 
+# elab_params  -bbox_mul < mul width> -bbox_mod <mod width>  
+
+# permutations   { {define FPV_PERM 1} 
+#      {elab_params -parameter PORT_45 0 } 
+#      {run_post_proof {fpv_gen_report PERM_1 } } 
+#      } 
+                                    
+
+# run_regression 1
+# regression_cfg regr_cfg.txt
+
+### run multiple regression with different set of parameters
+# example :     {{elab_params -parameter FIFO_L 2} {clocks clk}} 
+# permutations   $fpv_permutations
+
+### Netbatch/local settings moved to fpv_extra_setup.tcl
+
+# defines FPV_RESTRICT+FPV_LIVENESS+RTL+SVA_LIB_COVER_ENABLE
+### OVL fails with Syntax errors (must be synthesizable code)
+defines FPV_RESTRICT+FPV_LIVENESS+RTL+SVA_LIB_COVER_ENABLE
+# defines FPV_RESTRICT+FPV_LIVENESS+RTL+OVL_ON+OVL_SVA+OVL_ASSERT_ON+OVL_SYNTHESIS+SVA_LIB_COVER_ENABLE
+
+# Gilboa ? no dual lines ??? defines NO_T28_LIB+RTL
+## +define+NO_T28_LIB
+## +define+RTL
+
+
+run_extra_setup { source ../cfg/fpv_extra_setup.tcl }
+run_post_proof {source ../cfg/fpv_post_proof.tcl }
+### Disable the last global default "prove -all"
+avoid_prove 1
+
+### whether to run regression or not (default - not)
+# run_regression 1
+### regression cfg file (can be empty). See example here: $JASPER_DA/regr_cfg_example.txt
+regression_cfg ../cfg/fpv_regr_cfg.txt
+

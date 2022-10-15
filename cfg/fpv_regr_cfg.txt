@@ -1,0 +1,21 @@
+# This is an example of how regression cfg file should look like
+# line that start with '#' are commented out
+
+# setup for the first phase of prove (all properties together)
+initial_prove {set_max_trace_length 20} {set_engine_mode "Tri Hp Ht Hps Hts Bm C G L B N Q3 AM TA"} {set_prove_time_limit 10}
+
+# default for all properties prove
+all_props {set_max_trace_length 0} {set_engine_mode "Tri Hp Ht Hps Hts Bm C G L B N Q3 AM TA"}    {set_prove_time_limit 400}
+    
+# TODO :     {set_engine_mode "Tri Hp Ht Hps Hts Bm C G L B N Q3 AM TA"}
+# Original :    {set_engine_mode "Hp Ht Bm Q3 L R B K AB D I AD M N AM G C AG G2 C2 Hps Hts Tri"}  
+
+
+# props that match the string get the relevant setup
+*LIV* {set_max_trace_length 0}  {set_prove_time_limit 30}
+*out_data* {set_max_trace_length 11}
+
+# unprocess these properties
+unprocess_props *DEBUG*
+unprocess_props *debug*
+unprocess_props *tmp*
