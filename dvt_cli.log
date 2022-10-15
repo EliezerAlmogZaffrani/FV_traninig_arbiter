@@ -1,0 +1,31 @@
+[INFO] No DVT CLI detected for workspace './dvt_workspace', starting a new DVT instance...
+[INFO] Waiting for DVT CLI, timeout in 100 seconds...
+..............................................
+[INFO] Found DVT CLI for workspace './dvt_workspace' on icsl10474.iil.intel.com:46067
+[WARNING] Overwriting /nfs/site/proj/ccd/wa/gmichlev/FV/Training/training_arbiter/src/.project (-force specified)
+[INFO] Reusing existing: /nfs/site/proj/ccd/wa/gmichlev/FV/Training/training_arbiter/src/.dvt/default.build because none of -f, -F, -top or -test was specified and no build configuration content specified.
+[WARNING] Overwriting Eclipse project training_arbiter located here: /nfs/site/proj/ccd/wa/gmichlev/FV/Training/training_arbiter/src
+[WARNING] Overwriting Eclipse project training_arbiter located here: /nfs/site/proj/ccd/wa/gmichlev/FV/Training/training_arbiter/src
+[INFO] Writing DVT configuration files
+[INFO] Deleting old project
+[INFO] Creating project
+[INFO] Creating linked resources
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGBUS (0x7) at pc=0x00007ffef392b978, pid=448, tid=0x00007ffec3fff700
+#
+# JRE version: OpenJDK Runtime Environment (8.0_242-b07) (build 1.8.0_242-b07)
+# Java VM: OpenJDK 64-Bit Server VM (25.242-b07 mixed mode linux-amd64 compressed oops)
+# Problematic frame:
+# C  [libmozsqlite3.so+0xf978]
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# An error report file with more information is saved as:
+# /nfs/site/proj/ccd/wa/gmichlev/FV/Training/training_arbiter/hs_err_pid448.log
+#
+# If you would like to submit a bug report, please include
+# instructions on how to reproduce the bug and visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#
