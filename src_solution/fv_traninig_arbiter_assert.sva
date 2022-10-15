@@ -1,0 +1,133 @@
+// ========================  assert ===============
+
+
+// ================================
+// ASSERT
+// ================================
+
+/*
+ input clk;
+ input reset_n;
+ input sp; // switches to strict priority mode
+ input [W-1:0] in; // input bus for arbitration
+ input arb; // sample select for next arbitration
+ input restart; // forces arbiter to use restart bus input as last selection.
+ input [W-1:0] restart_in; // input restart bus, used to force RR arbitartion start point.
+ output [W-1:0] select; // 1hot output bus arbitration result
+ output [W-1:0] last; // sampled last selection vector - informative
+
+ */
+
+`define QUIET (in == '0 && select == '0 && !arb)
+
+// redundant, move to SPEC : wire [W-1:0] FV_gnt = arb ? select : {W{1'b0}};
+// Show that select changes
+// assert_show_select_changes : assert property ((select == last) ##1 1[*4:$] |=> (select == last));
+// assert_test : assert property ((select != select) |-> (select == last));
+// cover_show_select_changes : cover property ((select == last) ##1 1[*4:8] ##1 (select == last));
+// Show vacuous
+// cover_show_vacuous_test : assert property (sp |-> !sp);
+
+/***********************************************************************************/
+// ================================
+// ASSERT Select is one-hot
+// ================================
+assert_select_is_one_hot : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        $onehot0(select)
+    );
+
+// ================================
+// ASSERT No grant without request
+// ================================
+// This is an example to an assertion, using a ready made assertion from file fv_generic_properties
+// You can use more ready-made properties from fv_generic_properties, from intel_checkers and you can also write properties yourself
+
+ASRT_no_grant_without_request : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        ~in[FV_sel_x] |-> ~select[FV_sel_x]
+    );
+
+// ================================
+// ASSERT No double grant
+// ================================
+ASRT_no_double_grant : assert property (
+        @(posedge clk) disable iff(~reset_n) $onehot0(select)
+    );
+// ================================
+// ASSERT Select is active only with arb
+// ================================
+ASRT_select_is_active_only_with_arb : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        $fell(arb)[->5] ##1 (~arb)[*1:$] |-> $stable(select)
+    );
+
+ASRT_select_is_active_only_with_arb_sp : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        sp ##0  $fell(arb)[->5] ##1 (~arb)[*1:$] |-> $stable(select)
+    );
+
+ASRT_select_is_active_only_with_arb_low_sp : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        ~sp ##0  $fell(arb)[->5] ##1 (~arb)[*1:$] |-> $stable(select)
+    );
+// ================================
+// ASSERT A parking Select is active only if no other req is active, and reflects the last
+// ================================
+ASRT_parking_select_active_only_if_no_other_request_active : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        select[FV_sel_x] && (~in[FV_sel_x]) |-> (((|in) == 0) && (select == last))
+    );
+
+// ================================
+// ASSERT Any arb is reflected to select
+// ================================
+ASRT_any_arb_is_reflected_to_select : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        (arb && |in) |-> |select
+    );
+// ================================
+// ASSERT Any select is reflected to last (1cc delay)
+// ================================
+ASRT_any_select_is_reflected_to_last : assert property (
+        @(posedge clk) disable iff(~reset_n)
+        arb |=> (last == FV_select_delay)
+    );
+
+/***********************************************************************************/
+// MODE : Strict priority SP=1
+/***********************************************************************************/
+
+// ================================
+// ASSERT Strict priority unless restart
+// ================================
+ASRT_strict_priority_unless_restart : assert property(
+        @(posedge clk) disable iff(~reset_n)
+        ##1 sp && ~restart && (FV_sel_y < FV_sel_x) && in[FV_sel_y] ##0
+        (select[FV_sel_y] == 0)[*1:$] |-> (select[FV_sel_x] == 0)
+    );
+
+ASRT_highest_priority_will_gnt : assert property(
+        @(posedge clk) disable iff(~reset_n)
+        ##1 sp && ~restart && |in |-> select[FV_highest_priority]
+    );
+
+
+/***********************************************************************************/
+// MODE : Round Robin SP=0
+/***********************************************************************************/
+
+// ================================
+// ASSERT Round Robin unless restart
+// ================================
+ASRT_round_robin_unless_restart : assert property(
+        @(posedge clk) disable iff(~reset_n)
+        ##1 ~sp && ~restart && in[FV_sel_y] && (FV_sel_x != FV_sel_y) && arb && select[FV_sel_x] ##1
+        (select[FV_sel_y] == 0)[*0:$] |=> (select[FV_sel_x] == 0)
+    );
+
+ASRT_round_robin_unless_restart2 : assert property(
+        @(posedge clk) disable iff(~reset_n)
+        ##1 ~sp && ~restart && in[FV_sel_y] && (FV_sel_x != FV_sel_y) && arb && select[FV_sel_x] ##1
+        (select[FV_sel_y] == 0)[*1:$] |-> (select[FV_sel_x] == 0)
+    );
