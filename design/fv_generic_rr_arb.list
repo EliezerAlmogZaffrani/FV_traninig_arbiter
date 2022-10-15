@@ -1,0 +1,6 @@
+../design/gen_round_robin.v
+../design/gen_ms1_ls1.v
+../design/fsm.sv
+../design/memory.sv
+../design/fifo.sv
+../design/arbiter.sv
