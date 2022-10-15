@@ -1,0 +1,132 @@
+// ========================  spec ===============
+
+
+/*
+ * Readme :
+ * This file contains auxiliary code;
+ * you may use everything here, and you may chose to write your own auxiliary code
+ */
+
+`define ON 1'b1
+`define OFF 1'b0
+
+logic FV_first_cycle_after_reset;
+logic [W-1:0] FV_sel_arb_bus;
+
+always_ff @(posedge clk or negedge reset_n) begin
+    if (!reset_n)
+        FV_first_cycle_after_reset <= 1'b1;
+    else
+        FV_first_cycle_after_reset <= 1'b0;
+end
+
+function integer clogb2;
+    input [31:0] depth;
+    integer i,result;
+    begin
+        for (i = 0; 2 ** i < depth; i = i + 1)
+            result = i + 1;
+        clogb2 = result;
+    end
+endfunction // clogb2
+
+logic [LOG_W-1:0] FV_sel_x;
+logic [LOG_W-1:0] FV_sel_y;
+//logic [W-1:0] FV_select_delay;
+//
+//wire [W-1:0] FV_client_req = in[W-1:0];
+//wire [W-1:0] FV_client_gnt = arb? select[W-1:0] : {W{1'b0}};
+//
+//wire [W-1:0] FV_gnt = arb ? select : {W{1'b0}};
+//reg [W-1:0] FV_gnt_del;
+//always_ff @(posedge clk or negedge reset_n)
+//begin
+//    if (~reset_n) FV_gnt_del <= {W{1'b0}};
+//    else  FV_gnt_del <= FV_gnt;
+//end
+//
+//always_ff  @(posedge clk or negedge reset_n)
+//begin
+//    if(~reset_n) FV_select_delay <= {W{1'b0}};
+//    else FV_select_delay <= select;
+//end
+
+
+// test_should_fail : assert property (@(posedge clk) (FV_in_y |-> !FV_in_x));
+
+logic [LOG_W-1:0] FV_strict_highest_priority;
+always_comb
+begin
+    FV_strict_highest_priority = W;
+    for(integer i5 = W-1 ; i5 >= 0 ; i5--)
+    begin
+        if(in[i5])
+        begin
+            FV_strict_highest_priority = i5;
+        end
+    end
+end
+
+//logic [LOG_W-1:0] FV_num_of_reqs;
+//integer i5;
+//always_comb begin
+//    FV_num_of_reqs = 0;
+//    for(i5 = 0 ; i5 < W ; i5++)
+//    begin
+//        if(in[i5])
+//        begin
+//            FV_num_of_reqs++;
+//        end
+//    end
+//end
+
+logic [LOG_W-1:0] FV_last_gnt_index;
+always_comb begin
+    if(last == '0) begin
+        FV_last_gnt_index = W;
+    end
+    else begin
+        for(integer i7 = W-1 ; i7 >= 0 ; i7--)
+        begin
+            if(last[i7])
+            begin
+                FV_last_gnt_index = i7;
+            end
+        end
+    end
+end
+
+logic FV_win_happened;
+always_ff @(posedge clk or negedge reset_n) begin
+    if (!reset_n)
+        FV_win_happened <= 0;
+    else begin
+        if (!FV_win_happened && select != '0)
+            FV_win_happened <= 1;
+        else
+            FV_win_happened <= FV_win_happened;
+    end
+end
+
+logic [LOG_W-1:0] FV_rr_select_index;
+always_comb begin
+    FV_rr_select_index = W;
+    if (last == '0) begin
+        for(integer i8 = W - 1 ; i8 >= 0 ; i8--) begin
+            if(in[i8])
+                FV_rr_select_index = i8;
+        end
+    end
+    else begin
+        for(integer i6 = W ; i6 > 0 ; i6--) begin
+            if(in[(FV_last_gnt_index + i6) % W])
+                FV_rr_select_index = (FV_last_gnt_index + i6) % W;
+        end
+    end
+end
+
+
+
+
+
+

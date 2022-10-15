@@ -1,0 +1,71 @@
+// ========================  top ===============
+
+// ================ top =====================
+module fv_training_arbiter_top
+    #(
+        parameter W = 8,
+        parameter LOG_W = clogb2(W)
+    )
+    (
+        clk,
+        reset_n,
+        sp,
+        in,
+        arb,
+        restart,
+        restart_in,
+        select,
+        last
+
+    );
+    input clk;
+    input reset_n;
+    input sp; // switches to strict priority mode
+    input [W-1:0] in; // input bus for arbitration
+    input arb; // sample select for next arbitration
+    input restart; // forces arbiter to use restart bus input as last selection.
+    input [W-1:0] restart_in; // input restart bus, used to force RR arbitartion start point.
+    input /*output*/  [W-1:0] select; // 1hot output bus arbitration result
+    input /*output*/ [W-1:0] last; // sampled last selection vector - informative
+
+// ===================================================
+`define FV_TOP_MODULE  training_arbiter
+`define TRUE  1'b1
+`define FALSE 1'b0
+
+`define FPV_JASPER_SCOREBOARD3
+
+`timescale 100ps/10ps
+
+    // `include "cio_defines.def"
+
+    // ===================================================
+    import intel_checkers_pkg::*;
+
+`include "../src/fv_training_arbiter_map.sva"
+`ifdef FPV_RESTRICT
+    `include "../src/fv_training_arbiter_spec.sva"
+    `include "../src/fv_training_arbiter_restrict.sva"
+    `include "../src/fv_training_arbiter_assert.sva"
+    `include "../src/fv_training_arbiter_cover.sva"
+`endif
+`ifdef FPV_LIVENESS
+ `include "../src/fv_training_arbiter_liveness.sva"
+`endif
+`include "../src/fv_training_arbiter_assume.sva"
+
+
+endmodule
+
+
+// ===================================================
+bind  `FV_TOP_MODULE fv_training_arbiter_top
+#(
+    //#(
+    // Design parameters- DONT TOUCH - change only in TCL template
+    .W(W)
+// FV parameters - actual - change here
+)
+fv_training_arbiter_top
+(.*);
+

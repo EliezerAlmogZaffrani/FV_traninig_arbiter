@@ -1,0 +1,11 @@
+// ========================  restrict ===============
+
+
+REST_fv_sel_bus_stable: assume property(
+     @(posedge clk) disable iff(~reset_n)
+        $stable(FV_sel_arb_bus)
+    );
+REST_fv_sel_bus_one_hot0: assume property(
+     @(posedge clk) disable iff(~reset_n)
+        $onehot0(FV_sel_arb_bus)
+    );
