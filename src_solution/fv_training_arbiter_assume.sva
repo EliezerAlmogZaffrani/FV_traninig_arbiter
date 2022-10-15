@@ -1,0 +1,81 @@
+// ========================  assume ===============
+
+// ======================================================
+// ASSUME
+// ======================================================
+
+// #include "fv_generic_properties.sv"
+
+/*
+ * Readme :
+ * Please add the relevant environment restrictions according to the comments listed below
+ * and the documentation you received for this block
+ */
+
+/* *** inputs and outputs list
+ input clk;
+ input reset_n;
+ input sp; // switches to strict priority mode
+ input [W-1:0] in; // input bus for arbitration
+ input arb; // sample select for next arbitration
+ input restart; // forces arbiter to use restart bus input as last selection.
+ input [W-1:0] restart_in; // input restart bus, used to force RR arbitartion start point.
+ output [W-1:0] select; // 1hot output bus arbitration result
+ output [W-1:0] last; // sampled last selection vector - informative
+ */
+
+
+// ======================================================
+// Config Modes
+// ======================================================
+
+ASUM_sel_x_stable : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        ##1 $stable(FV_sel_x)
+    );
+
+ASUM_sel_y_stable : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        ##1 $stable(FV_sel_y)
+    );
+
+ASUM_no_restart: assume property (
+        @(posedge clk) disable iff(~reset_n)
+        restart == `OFF
+    );
+// ======================================================
+// ENVIR
+// ======================================================
+//Envir Assumption #1 :
+// sp does not change its value
+
+ASUM_sp_stable : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        $stable(sp)
+    );
+
+//Envir Assumption #2 :
+// arb is set only when there are active requests
+ASUM_arb_only_with_reqs : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        (|in == 0) |-> ~arb
+    );
+
+//Envir -  Assumption #3 :
+//Make sure that in does not regret - once asserted, it must stay so until selected.
+// You may use the generic property p_Req_until_Gnt
+
+//===============doesn't mean to only one bit at a time?====================================
+genvar i2;
+for (i2 = 0 ; i2 < W ; i2++)
+    begin
+ASUM_req_stable_until_select : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        in[i2] && !select[i2] |=> in[i2]
+    );
+    end
+//////////////////////////// envir - no regret ////////////////////////////////
+
+
+
+

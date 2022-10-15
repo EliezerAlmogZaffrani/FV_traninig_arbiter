@@ -1,0 +1,26 @@
+// ========================  liveness ===============
+
+
+/***********************************************************************************/
+// liveness property.
+/***********************************************************************************/
+// ================================
+// ASSERT Req will eventually be granted
+// ================================
+ASRT_LIV_req_will_eventually_granted : assert property (
+    @(posedge clk) disable iff(~reset_n)
+        (in[FV_sel_x] && ~sp) |-> ##[0:$] select[FV_sel_x]
+    );
+
+
+/***********************************************************************************/
+// Fairness Assumption.
+/***********************************************************************************/
+
+//Envir -  Fairness #4 :
+//Make sure that the arbiter does not wait for arb forever.
+// We will always have another arb (as long as there is any active req on in bus)
+ASUM_another_arb_always : assume property (
+        @(posedge clk) disable iff(~reset_n)
+        ~arb && |in |-> (~arb)[*0:$] ##1 arb
+    );

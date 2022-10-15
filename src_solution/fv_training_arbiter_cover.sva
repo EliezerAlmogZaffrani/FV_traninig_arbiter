@@ -1,0 +1,6 @@
+// ========================  cover ===============
+
+COVR_parking_select_active_only_if_no_other_request_active : cover property (
+        @(posedge clk) disable iff(~reset_n)
+        select[FV_sel_x] && (~in[FV_sel_x])
+    );

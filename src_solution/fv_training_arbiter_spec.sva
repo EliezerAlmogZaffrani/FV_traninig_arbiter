@@ -1,0 +1,98 @@
+// ========================  spec ===============
+
+
+/*
+ * Readme :
+ * This file contains auxiliary code;
+ * you may use everything here, and you may chose to write your own auxiliary code
+ */
+
+`define ON 1'b1
+`define OFF 1'b0
+
+function integer clogb2;
+    input [31:0] depth;
+    integer i,result;
+    begin
+        for (i = 0; 2 ** i < depth; i = i + 1)
+            result = i + 1;
+        clogb2 = result;
+    end
+endfunction // clogb2
+
+logic [LOG_W-1:0] FV_sel_x;
+logic [LOG_W-1:0] FV_sel_y;
+logic [W-1:0] FV_select_delay;
+
+wire [W-1:0] FV_client_req = in[W-1:0];
+wire [W-1:0] FV_client_gnt = arb? select[W-1:0] : {W{1'b0}};
+
+wire [W-1:0] FV_gnt = arb ? select : {W{1'b0}};
+reg [W-1:0] FV_gnt_del;
+always_ff @(posedge clk or negedge reset_n)
+begin
+    if (~reset_n) FV_gnt_del <= {W{1'b0}};
+    else  FV_gnt_del <= FV_gnt;
+end
+
+always_ff  @(posedge clk or negedge reset_n)
+begin
+    if(~reset_n) FV_select_delay <= {W{1'b0}};
+    else FV_select_delay <= select;
+end
+
+
+// test_should_fail : assert property (@(posedge clk) (FV_in_y |-> !FV_in_x));
+
+logic [LOG_W-1:0] FV_highest_priority;
+always_comb
+begin
+    if(|in == 0)
+    begin
+        FV_highest_priority = W;
+    end
+    else
+    begin
+        for(integer i = W-1 ; i >= 0 ; i--)
+        begin
+            if(in[i])
+            begin
+                FV_highest_priority = i;
+            end
+        end
+    end
+end
+
+/*logic [LOG_W-1:0] FV_num_of_reqs;
+ FV_num_of_reqs = 0;
+ for(i2 = 0 ; i2 < W ; i2++)
+ begin
+ if(in[i2])
+ begin
+ FV_num_of_reqs++;
+ end
+ end
+ */
+/*
+ logic [LOG_W-1:0] FV_select_index;
+ always_comb
+ begin
+ if(|select == 0)
+ begin
+ FV_select_index = W;
+ end
+ else
+ for(i2 = 0 ; i2 < W ; i2++)
+ begin
+ if(select[i2])
+ begin
+ FV_select_index = i;
+ end
+ end
+ end
+ */
+
+
+
+
+
